@@ -27,6 +27,7 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   Eye,
+  EyeOff,
   MapPin,
   CheckCircle,
   TrendingUp,
@@ -4335,27 +4336,39 @@ const LoginView: React.FC<{
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showDemoAccounts, setShowDemoAccounts] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    // Simulate loading state for better UX
+    await new Promise(resolve => setTimeout(resolve, 500));
     onSubmit(username, password);
+    setIsSubmitting(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0B2C4D] to-[#020617] flex items-center justify-center px-4 py-8">
-      <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-0 bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur-lg transition-all duration-300 hover:shadow-3xl">
+    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0B2C4D] to-[#020617] flex items-center justify-center px-4 py-8 overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="fixed inset-0 -z-10 opacity-20">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500 rounded-full blur-[80px]"></div>
+      </div>
+      
+      <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-0 bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur-lg transition-all duration-500 hover:shadow-3xl transform hover:-translate-y-1">
         {/* Left Side - Branding & Information */}
         <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-[#0B2C4D] via-[#1d4ed8] to-[#0B2C4D] text-white p-12 relative overflow-hidden">
-          {/* Decorative Elements */}
+          {/* Animated Decorative Elements */}
           <div className="absolute top-0 left-0 w-full h-full opacity-10">
-            <div className="absolute top-20 right-20 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-            <div className="absolute bottom-20 left-20 w-80 h-80 bg-blue-400 rounded-full blur-3xl"></div>
+            <div className="absolute top-20 right-20 w-64 h-64 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDuration: '3s' }}></div>
+            <div className="absolute bottom-20 left-20 w-80 h-80 bg-blue-400 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s', animationDelay: '1s' }}></div>
           </div>
           
           {/* Logo Section */}
-          <div className="relative z-10">
+          <div className="relative z-10 animate-fade-in">
             <div className="flex items-center gap-4 mb-12">
-              <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm hover:bg-white/30 transition-all duration-300 shadow-lg">
+              <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm hover:bg-white/30 transition-all duration-300 shadow-lg transform hover:scale-105">
                 <img src="/assets/logos/mainlogo copy.png" alt="Logo" className="h-16 w-auto object-contain brightness-0 invert" />
               </div>
               <div>
@@ -4373,8 +4386,8 @@ const LoginView: React.FC<{
           </div>
           
           {/* Features Grid */}
-          <div className="relative z-10 grid grid-cols-1 gap-6 mt-12">
-            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20">
+          <div className="relative z-10 grid grid-cols-1 gap-6 mt-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20 transform hover:translate-x-2">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-blue-400/30 p-2 rounded-lg">
                   <ShoppingCart size={16} className="text-white" />
@@ -4384,7 +4397,7 @@ const LoginView: React.FC<{
               <p className="text-xs text-blue-100/90">إصدار فواتير، تقارير يومية، وسندات سداد ديون.</p>
             </div>
             
-            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20">
+            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20 transform hover:translate-x-2">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-blue-400/30 p-2 rounded-lg">
                   <Wrench size={16} className="text-white" />
@@ -4394,7 +4407,7 @@ const LoginView: React.FC<{
               <p className="text-xs text-blue-100/90">متابعة الأعمال، حالات الصيانة، وفواتير الصيانة.</p>
             </div>
             
-            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20">
+            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20 transform hover:translate-x-2">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-blue-400/30 p-2 rounded-lg">
                   <Package size={16} className="text-white" />
@@ -4406,7 +4419,7 @@ const LoginView: React.FC<{
           </div>
           
           {/* Footer */}
-          <div className="relative z-10 mt-12 pt-6 border-t border-white/10">
+          <div className="relative z-10 mt-12 pt-6 border-t border-white/10 animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <p className="text-xs text-blue-100/80">© 2024 الشركة الوطنية للمعدات البحرية</p>
             <p className="text-xs text-blue-400 font-bold">AL-WATANYA MARINE SYSTEMS</p>
           </div>
@@ -4414,7 +4427,14 @@ const LoginView: React.FC<{
 
         {/* Right Side - Login Form */}
         <div className="bg-[var(--bg)]/95 p-8 md:p-12 flex flex-col justify-center">
-          <div className="mb-8">
+          {/* Mobile Logo */}
+          <div className="md:hidden flex items-center justify-center mb-8 animate-fade-in">
+            <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shadow-lg">
+              <img src="/assets/logos/mainlogo copy.png" alt="Logo" className="h-12 w-auto object-contain brightness-0 invert" />
+            </div>
+          </div>
+          
+          <div className="mb-8 animate-fade-in">
             <h2 className="text-3xl font-black text-white mb-2">تسجيل الدخول</h2>
             <p className="text-sm text-white/70">أدخل بيانات الدخول للمتابعة إلى النظام</p>
           </div>
@@ -4422,7 +4442,7 @@ const LoginView: React.FC<{
           {/* Demo Accounts Toggle */}
           <button 
             onClick={() => setShowDemoAccounts(!showDemoAccounts)} 
-            className="w-full mb-6 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+            className="w-full mb-6 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm transform hover:scale-105"
           >
             {showDemoAccounts ? (
               <>
@@ -4439,9 +4459,9 @@ const LoginView: React.FC<{
           
           {/* Demo Accounts List */}
           {showDemoAccounts && (
-            <div className="mb-6 bg-white/5 rounded-xl border border-white/10 p-4 space-y-3">
+            <div className="mb-6 bg-white/5 rounded-xl border border-white/10 p-4 space-y-3 animate-fade-in">
               {users.map((user, index) => (
-                <div key={user.id} className="flex justify-between items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-all duration-200">
+                <div key={user.id} className="flex justify-between items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-all duration-300 transform hover:scale-[1.02]">
                   <div>
                     <p className="text-sm font-bold text-white">{user.name}</p>
                     <p className="text-xs text-white/60">{user.role === 'Admin' ? 'مدير عام' : user.role === 'User' ? 'موظف' : user.role}</p>
@@ -4456,8 +4476,9 @@ const LoginView: React.FC<{
           )}
           
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <label className="block text-sm font-bold text-[var(--primary)]">اسم المستخدم</label>
+            {/* Username Field */}
+            <div className="space-y-2 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <label className="block text-sm font-bold text-white">اسم المستخدم</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none transition-colors duration-200 group-focus-within:text-[var(--primary)]">
                   <UserIcon size={18} className="text-[var(--text-secondary)]" />
@@ -4467,27 +4488,38 @@ const LoginView: React.FC<{
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   placeholder="مثال: admin أو sales"
-                  className="pr-10 h-12 bg-white/5 border-white/10 hover:border-[var(--primary)]/50 transition-all duration-300"
+                  className="pr-10 h-12 bg-white/5 border-white/10 hover:border-[var(--primary)]/50 focus:border-[var(--primary)] transition-all duration-300 transform focus:scale-[1.01]"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label className="block text-sm font-bold text-[var(--primary)]">كلمة المرور</label>
+            {/* Password Field with Visibility Toggle */}
+            <div className="space-y-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <label className="block text-sm font-bold text-white">كلمة المرور</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none transition-colors duration-200 group-focus-within:text-[var(--primary)]">
                   <Key size={18} className="text-[var(--text-secondary)]" />
                 </div>
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)} 
+                  className="absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors duration-200"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
                 <Input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="أدخل كلمة المرور"
-                  className="pr-10 h-12 bg-white/5 border-white/10 hover:border-[var(--primary)]/50 transition-all duration-300"
+                  className="pl-10 pr-10 h-12 bg-white/5 border-white/10 hover:border-[var(--primary)]/50 focus:border-[var(--primary)] transition-all duration-300 transform focus:scale-[1.01]"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
             
+            {/* Error Message */}
             {error && (
               <div className="text-sm font-bold text-red-500 bg-red-50/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-2 animate-shake">
                 <AlertCircle size={16} />
@@ -4495,17 +4527,28 @@ const LoginView: React.FC<{
               </div>
             )}
             
+            {/* Login Button */}
             <button
               type="submit"
-              className="w-full mt-4 bg-gradient-to-r from-[var(--primary)] to-[#1d4ed8] hover:from-[#1d4ed8] hover:to-[var(--primary)] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg shadow-blue-900/40 active:scale-[0.98] transition-all duration-300 transform hover:shadow-xl"
+              className="w-full mt-4 bg-gradient-to-r from-[var(--primary)] to-[#1d4ed8] hover:from-[#1d4ed8] hover:to-[var(--primary)] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg shadow-blue-900/40 active:scale-[0.98] transition-all duration-500 transform hover:shadow-xl hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+              disabled={isSubmitting}
             >
-              <LogIn size={18} />
-              <span>دخول إلى المنظومة</span>
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                  <span>جاري الدخول...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn size={18} />
+                  <span>دخول إلى المنظومة</span>
+                </>
+              )}
             </button>
           </form>
           
           {/* Quick Access Buttons */}
-          <div className="mt-8 grid grid-cols-3 gap-2">
+          <div className="mt-8 grid grid-cols-3 gap-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
             {users.map((user, index) => (
               <button
                 key={user.id}
@@ -4513,7 +4556,7 @@ const LoginView: React.FC<{
                   setUsername(user.username);
                   setPassword(user.password);
                 }}
-                className="py-2 px-3 bg-white/5 hover:bg-white/10 text-xs text-white/80 rounded-lg transition-all duration-200 hover:text-white"
+                className="py-2 px-3 bg-white/5 hover:bg-white/10 text-xs text-white/80 rounded-lg transition-all duration-300 hover:text-white transform hover:scale-110"
                 title={`تسجيل الدخول كـ ${user.name}`}
               >
                 {user.username.slice(0, 3).toUpperCase()}
@@ -4521,7 +4564,8 @@ const LoginView: React.FC<{
             ))}
           </div>
           
-          <div className="mt-8 text-center text-xs text-white/50">
+          {/* Footer */}
+          <div className="mt-8 text-center text-xs text-white/50 animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <p>© 2024 AL-WATANYA MARINE SYSTEMS</p>
           </div>
         </div>
