@@ -1,5 +1,5 @@
 
-import { Product, Customer, Sale, MaintenanceRecord, Supplier, User, EmailMessage } from './types';
+import { Product, Customer, Sale, MaintenanceRecord, Supplier, User, EmailMessage, SupplyInvoice } from './types';
 
 export const MOCK_USERS: User[] = [
   { 
@@ -8,15 +8,15 @@ export const MOCK_USERS: User[] = [
     name: 'المدير العام', 
     password: '123', 
     role: 'Admin', 
-    permissions: ['dashboard', 'sales', 'inventory', 'maintenance', 'customers', 'accounting', 'settings', 'reports', 'messages'] 
+    permissions: ['dashboard', 'sales', 'inventory', 'maintenance', 'customers', 'accounting', 'settings', 'reports', 'messages', 'archive'] 
   },
-  { 
+  {
     id: 'U002', 
     username: 'sales', 
     name: 'موظف مبيعات', 
     password: '123', 
     role: 'User', 
-    permissions: ['dashboard', 'sales', 'customers', 'messages'] 
+    permissions: ['dashboard', 'sales', 'customers', 'messages', 'archive'] 
   },
   { 
     id: 'U003', 
@@ -50,11 +50,45 @@ export const MOCK_SALES: Sale[] = [
     customerName: 'أحمد الفارسي', 
     customerType: 'Permanent',
     items: [{ productId: 'P002', productName: 'سترة نجاة احترافية', quantity: 2, price: 350 }], 
+    laborCost: 0,
     total: 700, 
     paymentMethod: 'Cash', 
     status: 'Completed',
+    invoiceType: 'Sale',
     createdBy: 'U001'
   },
+  { 
+    id: 'INV-1002', 
+    date: '2024-05-21', 
+    customerId: 'C002', 
+    customerName: 'شركة البحر الأحمر', 
+    customerType: 'Permanent',
+    items: [{ productId: 'P005', productName: 'زيت محركات 5 لتر', quantity: 10, price: 150 }], 
+    laborCost: 500,
+    total: 2000, 
+    paymentMethod: 'Credit', 
+    status: 'Completed',
+    invoiceType: 'Maintenance',
+    maintenanceDevice: 'محرك ياماها 200',
+    createdBy: 'U001'
+  },
+];
+
+export const MOCK_SUPPLY_INVOICES: SupplyInvoice[] = [
+  {
+    id: 'SUP-2024-001',
+    date: '2024-05-15',
+    supplierId: 'S001',
+    supplierName: 'Yamaha Japan',
+    items: [
+      { productId: 'P001', productName: 'محرك ياماها 200 حصان', quantity: 10, costUSD: 5800, priceLYD: 45000 },
+      { productId: 'P006', productName: 'شمعات احتراق V8', quantity: 100, costUSD: 4, priceLYD: 65 }
+    ],
+    totalUSD: 58400,
+    totalLYD: 456500,
+    notes: 'شحنة حاوية ميركوري رقم #MC-9988',
+    createdBy: 'U001'
+  }
 ];
 
 export const MOCK_MAINTENANCE: MaintenanceRecord[] = [

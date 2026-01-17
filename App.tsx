@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import * as html2pdf from 'html2pdf.js';
+import html2pdf from 'html2pdf.js';
 import { 
   LayoutDashboard, 
   ShoppingCart, 
@@ -51,12 +51,13 @@ import {
   Paperclip,
   RefreshCw,
   Inbox,
+  Archive,
   LogIn
 } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-import { MOCK_PRODUCTS, MOCK_CUSTOMERS, MOCK_SALES, MOCK_MAINTENANCE, MOCK_USERS, MOCK_SUPPLIERS, MOCK_MESSAGES } from './constants';
-import { Product, Customer, Sale, MaintenanceRecord, MaintenancePart, User, Permission, MaintenanceStatus, ProductType, EmailMessage, CustomerType } from './types';
+import { MOCK_PRODUCTS, MOCK_CUSTOMERS, MOCK_SALES, MOCK_MAINTENANCE, MOCK_USERS, MOCK_SUPPLIERS, MOCK_MESSAGES, MOCK_SUPPLY_INVOICES } from './constants';
+import { Product, Customer, Sale, MaintenanceRecord, MaintenancePart, User, Permission, MaintenanceStatus, ProductType, EmailMessage, CustomerType, SupplyInvoice } from './types';
 
 // --- Visual Identity Constants (For Charts Only) ---
 const CHART_COLORS = ['#0B2C4D', '#2E8B57', '#F4A261', '#C0392B', '#3498DB', '#9B59B6'];
@@ -544,6 +545,7 @@ const NewSaleModal: React.FC<{
       total,
       paymentMethod,
       status: 'Completed',
+      invoiceType: laborCost > 0 ? 'Maintenance' : 'Sale',
       maintenanceDevice,
       notes,
       createdBy: currentUser.id
@@ -573,6 +575,7 @@ const NewSaleModal: React.FC<{
       total,
       paymentMethod,
       status: 'Completed',
+      invoiceType: laborCost > 0 ? 'Maintenance' : 'Sale',
       maintenanceDevice,
       notes,
       createdBy: currentUser.id
@@ -908,6 +911,7 @@ const DebtPaymentModal: React.FC<{
       total: amount,
       paymentMethod,
       status: 'Completed',
+      invoiceType: 'Sale',
       maintenanceDevice: undefined,
       notes: notes || 'سداد جزء من الدين المستحق على العميل',
       createdBy: currentUser.id
@@ -1362,6 +1366,308 @@ const InvoiceTemplateA4: React.FC<{ sale: Sale, products: Product[], user: User 
 
 // ... (DashboardView, SalesView, etc.)
 
+const SupplyInvoiceTemplateA4: React.FC<{ invoice: SupplyInvoice, user: User }> = ({ invoice, user }) => {
+  return (
+    <div className="print-area w-[210mm] min-h-[297mm] bg-white p-[15mm] mx-auto text-right dir-rtl shadow-lg border border-gray-100 relative" id="supply-invoice-template">
+      {/* Header with Blue Bar */}
+      <div className="absolute top-0 left-0 right-0 h-2 bg-[#0B2C4D]"></div>
+      
+      <div className="flex justify-between items-start mb-10">
+        <div className="flex items-center gap-5">
+          <div className="bg-[#0B2C4D] p-4 rounded-2xl shadow-md">
+            <img src="/assets/logos/mainlogo copy.png" alt="Logo" className="h-16 w-auto object-contain brightness-0 invert" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-[#0B2C4D] tracking-tight">الشركة الوطنية للمعدات البحرية</h1>
+            <p className="text-[10px] font-bold text-gray-400 tracking-[0.3em] mt-1">AL-WATANYA MARINE SYSTEMS</p>
+            <div className="mt-3 flex items-center gap-4 text-[10px] text-gray-500 font-bold">
+               <span className="flex items-center gap-1"><Phone size={12} className="text-[#0B2C4D]" /> 091-0000000</span>
+               <span className="flex items-center gap-1"><MapPin size={12} className="text-[#0B2C4D]" /> طرابلس - تاجوراء</span>
+            </div>
+          </div>
+        </div>
+        <div className="text-left">
+           <div className="bg-gray-100 px-6 py-3 rounded-xl border-r-4 border-[#0B2C4D]">
+              <h2 className="text-xl font-black text-[#0B2C4D]">فاتورة توريد بضاعة</h2>
+              <p className="text-xs font-bold text-gray-500 mt-1">رقم الفاتورة: {invoice.id}</p>
+           </div>
+           <div className="mt-4 text-[11px] font-bold text-gray-500 space-y-1">
+              <p>تاريخ الفاتورة: {formatDate(invoice.date)}</p>
+              <p>توقيت التسجيل: {formatTime(invoice.date)}</p>
+              <p>الموظف المسؤول: {user.name}</p>
+           </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-8 mb-10">
+        <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+           <h3 className="text-xs font-black text-[#0B2C4D] uppercase mb-3 border-b border-blue-200 pb-2">بيانات المورد</h3>
+           <p className="text-base font-black text-gray-800 mb-1">{invoice.supplierName}</p>
+           <p className="text-xs text-gray-500 font-bold">معرف المورد: {invoice.supplierId}</p>
+        </div>
+        <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
+           <h3 className="text-xs font-black text-gray-500 uppercase mb-3 border-b border-gray-200 pb-2">ملاحظات الشحنة</h3>
+           <p className="text-xs text-gray-600 font-bold leading-relaxed">{invoice.notes || 'لا توجد ملاحظات إضافية على هذه الشحنة'}</p>
+        </div>
+      </div>
+
+      <table className="w-full mb-10 border-collapse">
+        <thead>
+          <tr className="bg-[#0B2C4D] text-white">
+            <th className="py-4 px-4 text-right rounded-r-xl text-xs font-black">#</th>
+            <th className="py-4 px-4 text-right text-xs font-black">المنتج / البيان</th>
+            <th className="py-4 px-4 text-center text-xs font-black">الكمية</th>
+            <th className="py-4 px-4 text-center text-xs font-black">سعر التكلفة ($)</th>
+            <th className="py-4 px-4 text-center text-xs font-black">سعر البيع (دل)</th>
+            <th className="py-4 px-4 text-left rounded-l-xl text-xs font-black">الإجمالي ($)</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {invoice.items.map((item, index) => (
+            <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+              <td className="py-4 px-4 text-xs font-bold text-gray-400">{(index + 1).toString().padStart(2, '0')}</td>
+              <td className="py-4 px-4">
+                <p className="text-sm font-black text-gray-800">{item.productName}</p>
+                <p className="text-[10px] text-gray-400 font-bold">كود: {item.productId}</p>
+              </td>
+              <td className="py-4 px-4 text-center text-sm font-black text-gray-700">{item.quantity}</td>
+              <td className="py-4 px-4 text-center text-sm font-bold text-gray-600">{formatUSD(item.costUSD)}</td>
+              <td className="py-4 px-4 text-center text-sm font-bold text-gray-600">{formatCurrency(item.priceLYD)}</td>
+              <td className="py-4 px-4 text-left text-sm font-black text-[#0B2C4D]">{formatUSD(item.costUSD * item.quantity)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="flex justify-end mb-20">
+        <div className="w-72 space-y-3">
+          <div className="flex justify-between items-center px-4 py-2 bg-gray-50 rounded-lg">
+             <span className="text-xs font-bold text-gray-500">إجمالي التكلفة (USD)</span>
+             <span className="text-base font-black text-gray-800">{formatUSD(invoice.totalUSD)}</span>
+          </div>
+          <div className="flex justify-between items-center px-4 py-4 bg-[#0B2C4D] text-white rounded-xl shadow-lg">
+             <span className="text-sm font-bold">إجمالي القيمة السوقية (LYD)</span>
+             <span className="text-xl font-black">{formatCurrency(invoice.totalLYD)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-auto grid grid-cols-3 gap-10 pt-10 border-t border-gray-100">
+         <div className="text-center">
+            <p className="text-[10px] font-black text-gray-400 mb-8 uppercase">توقيع الموظف</p>
+            <div className="h-px bg-gray-200 w-32 mx-auto mb-2"></div>
+            <p className="text-xs font-bold text-gray-700">{user.name}</p>
+         </div>
+         <div className="text-center">
+            <p className="text-[10px] font-black text-gray-400 mb-8 uppercase">ختم المخازن</p>
+            <div className="w-20 h-20 border-2 border-dashed border-gray-200 rounded-full mx-auto flex items-center justify-center">
+               <span className="text-[8px] text-gray-300 font-black">STAMP HERE</span>
+            </div>
+         </div>
+         <div className="text-center">
+            <p className="text-[10px] font-black text-gray-400 mb-8 uppercase">اعتماد المدير العام</p>
+            <div className="h-px bg-gray-200 w-32 mx-auto mb-2"></div>
+            <p className="text-xs font-bold text-gray-400">...........................</p>
+         </div>
+      </div>
+
+      <div className="mt-10 text-center text-gray-400 font-bold text-[10px]">
+         <p>طرابلس - تاجوراء (بالقرب من جزيرة دوران تاجوراء)</p>
+         <p className="mt-1">تم إصدار هذه الفاتورة آلياً بواسطة منظومة الوطنية</p>
+      </div>
+    </div>
+  );
+};
+
+const ArchiveView: React.FC<{
+  sales: Sale[],
+  supplyInvoices: SupplyInvoice[],
+  products: Product[],
+  currentUser: User
+}> = ({ sales, supplyInvoices, products, currentUser }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'All' | 'Sale' | 'Maintenance' | 'Supply'>('All');
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [selectedSupply, setSelectedSupply] = useState<SupplyInvoice | null>(null);
+
+  const filteredSales = sales.filter(s => {
+    const matchesSearch = s.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          s.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = filterType === 'All' || s.invoiceType === filterType;
+    return matchesSearch && matchesType && filterType !== 'Supply';
+  });
+
+  const filteredSupplies = supplyInvoices.filter(s => {
+    const matchesSearch = s.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          s.supplierName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = filterType === 'All' || filterType === 'Supply';
+    return matchesSearch && matchesType;
+  });
+
+  const allItems = [
+    ...filteredSales.map(s => ({ ...s, type: 'Sale' as const, original: s })),
+    ...filteredSupplies.map(s => ({ ...s, type: 'Supply' as const, original: s }))
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-[var(--primary)]">أرشيف الفواتير الشامل</h2>
+          <p className="text-[var(--text-secondary)] text-sm">البحث والمعاينة لجميع فواتير المبيعات، الصيانة، والتوريد</p>
+        </div>
+      </div>
+
+      <div className="bg-[var(--surface)] p-5 rounded-2xl border border-[var(--border)] shadow-sm flex flex-col md:flex-row gap-4 items-center">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={18} />
+          <Input 
+            placeholder="بحث برقم الفاتورة أو اسم العميل/المورد..." 
+            value={searchTerm} 
+            onChange={e => setSearchTerm(e.target.value)} 
+            className="w-full bg-[var(--surface)] pr-10 h-12" 
+          />
+        </div>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Select 
+            value={filterType} 
+            onChange={e => setFilterType(e.target.value as any)}
+            className="h-12 min-w-[150px]"
+          >
+            <option value="All">جميع الأنواع</option>
+            <option value="Sale">فواتير مبيعات</option>
+            <option value="Maintenance">فواتير صيانة</option>
+            <option value="Supply">فواتير توريد</option>
+          </Select>
+        </div>
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl shadow-sm border border-[var(--border)] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-right custom-table">
+            <thead>
+              <tr>
+                <th>رقم الفاتورة</th>
+                <th>التاريخ</th>
+                <th>الجهة (عميل/مورد)</th>
+                <th>النوع</th>
+                <th>الإجمالي</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border)]">
+              {allItems.length === 0 ? (
+                <tr><td colSpan={6} className="text-center p-20 text-gray-400 font-bold">لا توجد فواتير مطابقة للبحث</td></tr>
+              ) : (
+                allItems.map(item => (
+                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="font-mono font-bold text-[var(--primary)]">{item.id}</td>
+                    <td className="text-sm font-medium">{formatDate(item.date)}</td>
+                    <td className="font-bold">
+                      {'customerName' in item ? item.customerName : item.supplierName}
+                    </td>
+                    <td>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black ${
+                        item.type === 'Supply' ? 'bg-purple-100 text-purple-700' :
+                        ('invoiceType' in item && item.invoiceType === 'Maintenance') ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {item.type === 'Supply' ? 'توريد بضاعة' : 
+                         ('invoiceType' in item && item.invoiceType === 'Maintenance') ? 'صيانة' : 'مبيعات'}
+                      </span>
+                    </td>
+                    <td className="font-black text-[var(--primary)]">
+                      {'total' in item ? formatCurrency(item.total) : formatCurrency(item.totalLYD)}
+                    </td>
+                    <td className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          if (item.type === 'Supply') {
+                            setSelectedSupply(item.original as SupplyInvoice);
+                          } else {
+                            setSelectedSale(item.original as Sale);
+                          }
+                        }} 
+                        className="bg-white border border-gray-200 p-2 hover:bg-gray-50 rounded-xl text-[var(--info)] shadow-sm transition-all" 
+                        title="عرض ومعاينة"
+                      >
+                        <Eye size={18}/>
+                      </button>
+                      <button 
+                        className="bg-white border border-gray-200 p-2 hover:bg-gray-50 rounded-xl text-gray-500 shadow-sm transition-all" 
+                        title="طباعة"
+                        onClick={() => {
+                          // In a real app, this would trigger the print logic
+                          if (item.type === 'Supply') {
+                            setSelectedSupply(item.original as SupplyInvoice);
+                          } else {
+                            setSelectedSale(item.original as Sale);
+                          }
+                        }}
+                      >
+                        <Printer size={18}/>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {selectedSale && (
+        <Modal
+          isOpen={!!selectedSale}
+          onClose={() => setSelectedSale(null)}
+          title={`معاينة فاتورة: ${selectedSale.id}`}
+          size="lg"
+        >
+          <div className="space-y-6">
+            <div className="bg-white p-4 rounded-xl shadow-inner border border-gray-100 overflow-auto flex justify-center">
+              <div className="origin-top scale-[0.6] print:scale-100">
+                <InvoiceTemplateA4 sale={selectedSale} products={products} user={currentUser} />
+              </div>
+            </div>
+            <div className="flex justify-center gap-4 no-print">
+               <button onClick={() => downloadPdfFromPrintArea(`${selectedSale.id}.pdf`)} className="btn-secondary px-6 py-3 rounded-xl font-bold flex items-center gap-2">
+                  <FileText size={18} /> تحميل PDF
+               </button>
+               <button onClick={() => triggerPrint(selectedSale.id)} className="btn-primary px-10 py-3 rounded-xl font-bold flex items-center gap-2">
+                  <Printer size={18} /> طباعة الفاتورة
+               </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {selectedSupply && (
+        <Modal
+          isOpen={!!selectedSupply}
+          onClose={() => setSelectedSupply(null)}
+          title={`معاينة فاتورة توريد: ${selectedSupply.id}`}
+          size="lg"
+        >
+          <div className="space-y-6">
+            <div className="bg-white p-4 rounded-xl shadow-inner border border-gray-100 overflow-auto flex justify-center">
+              <div className="origin-top scale-[0.6] print:scale-100">
+                <SupplyInvoiceTemplateA4 invoice={selectedSupply} user={currentUser} />
+              </div>
+            </div>
+            <div className="flex justify-center gap-4 no-print">
+               <button onClick={() => downloadPdfFromPrintArea(`${selectedSupply.id}.pdf`)} className="btn-secondary px-6 py-3 rounded-xl font-bold flex items-center gap-2">
+                  <FileText size={18} /> تحميل PDF
+               </button>
+               <button onClick={() => triggerPrint(selectedSupply.id)} className="btn-primary px-10 py-3 rounded-xl font-bold flex items-center gap-2">
+                  <Printer size={18} /> طباعة الفاتورة
+               </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+};
+
 const DashboardView: React.FC<{ 
   products: Product[], 
   sales: Sale[], 
@@ -1755,13 +2061,15 @@ const InventoryView: React.FC<{
   products: Product[], 
   currentUser: User,
   onSave: (product: Product) => void, 
-  onDelete: (id: string) => void 
-}> = ({ products, currentUser, onSave, onDelete }) => {
+  onDelete: (id: string) => void,
+  onBulkSupply: (invoice: SupplyInvoice) => void
+}> = ({ products, currentUser, onSave, onDelete, onBulkSupply }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [stockFilter, setStockFilter] = useState<'All' | 'Low' | 'Out'>('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPreviewReportOpen, setIsPreviewReportOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Derived state for filtered products
@@ -1816,6 +2124,9 @@ const InventoryView: React.FC<{
             className="bg-gray-900 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-sm hover:bg-gray-800 transition-all"
           >
             <ClipboardList size={18} /> <span>تصدير كشف المخزن (A4)</span>
+          </button>
+          <button onClick={() => setIsBulkModalOpen(true)} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-sm hover:bg-blue-700 transition-all">
+            <Anchor size={18} /> <span>إدخال بضاعة (حاوية)</span>
           </button>
           <button onClick={() => handleAddEdit()} className="btn-primary px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-sm">
             <Plus size={18} /> <span>إضافة منتج</span>
@@ -1993,6 +2304,21 @@ const InventoryView: React.FC<{
               </div>
           </Modal>
       )}
+
+      {/* Bulk Supply Modal */}
+      {isBulkModalOpen && (
+        <BulkSupplyModal 
+          isOpen={isBulkModalOpen} 
+          onClose={() => setIsBulkModalOpen(false)} 
+          products={products} 
+          currentUser={currentUser}
+          onSave={(invoice) => {
+            onBulkSupply(invoice);
+            setIsBulkModalOpen(false);
+          }}
+        />
+      )}
+
     </div>
   );
 };
@@ -2535,7 +2861,145 @@ const AccountingView: React.FC<{
           </div>
         </div>
       </div>
+
     </div>
+  );
+};
+
+const BulkSupplyModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  products: Product[];
+  currentUser: User;
+  onSave: (invoice: SupplyInvoice) => void;
+}> = ({ isOpen, onClose, products, currentUser, onSave }) => {
+  const [supplierName, setSupplierName] = useState('Mercury Marine');
+  const [notes, setNotes] = useState('شحنة حاوية جديدة');
+  const [items, setItems] = useState<{ productId: string; productName: string; quantity: number; costUSD: number; priceLYD: number }[]>([]);
+
+  const addItem = () => {
+    setItems([...items, { productId: '', productName: '', quantity: 1, costUSD: 0, priceLYD: 0 }]);
+  };
+
+  const updateItem = (index: number, field: string, value: any) => {
+    const newItems = [...items];
+    (newItems[index] as any)[field] = value;
+    
+    // Auto-fill product name if ID matches
+    if (field === 'productId') {
+      const product = products.find(p => p.id === value);
+      if (product) {
+        newItems[index].productName = product.name;
+      }
+    }
+    
+    setItems(newItems);
+  };
+
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const totalUSD = items.reduce((sum, item) => sum + (item.costUSD * item.quantity), 0);
+  const totalLYD = items.reduce((sum, item) => sum + (item.priceLYD * item.quantity), 0);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (items.length === 0) return alert('يرجى إضافة منتجات');
+    
+    const invoice: SupplyInvoice = {
+      id: `SUP-${Date.now()}`,
+      date: new Date().toISOString(),
+      supplierId: 'S-MERCURY',
+      supplierName,
+      items,
+      totalUSD,
+      totalLYD,
+      notes,
+      createdBy: currentUser.id
+    };
+    
+    onSave(invoice);
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="إدخال بضاعة (حاوية ميركوري)" size="xl">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold mb-1">اسم المورد</label>
+            <Input value={supplierName} onChange={e => setSupplierName(e.target.value)} required />
+          </div>
+          <div>
+            <label className="block text-sm font-bold mb-1">ملاحظات الشحنة</label>
+            <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="رقم الحاوية أو تفاصيل الشحنة..." />
+          </div>
+        </div>
+
+        <div className="border rounded-xl overflow-hidden">
+          <table className="w-full text-right text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="p-3">رقم الصنف</th>
+                <th className="p-3">اسم المنتج</th>
+                <th className="p-3 w-20">الكمية</th>
+                <th className="p-3">التكلفة ($)</th>
+                <th className="p-3">سعر البيع (دل)</th>
+                <th className="p-3 w-10"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {items.map((item, index) => (
+                <tr key={index}>
+                  <td className="p-2">
+                    <Input list="inventory-products" value={item.productId} onChange={e => updateItem(index, 'productId', e.target.value)} required />
+                    <datalist id="inventory-products">
+                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </datalist>
+                  </td>
+                  <td className="p-2">
+                    <Input value={item.productName} onChange={e => updateItem(index, 'productName', e.target.value)} required />
+                  </td>
+                  <td className="p-2">
+                    <Input type="number" value={item.quantity} onChange={e => updateItem(index, 'quantity', Number(e.target.value))} required />
+                  </td>
+                  <td className="p-2">
+                    <Input type="number" value={item.costUSD} onChange={e => updateItem(index, 'costUSD', Number(e.target.value))} required />
+                  </td>
+                  <td className="p-2">
+                    <Input type="number" value={item.priceLYD} onChange={e => updateItem(index, 'priceLYD', Number(e.target.value))} required />
+                  </td>
+                  <td className="p-2">
+                    <button type="button" onClick={() => removeItem(index)} className="text-red-500 hover:text-red-700">
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button type="button" onClick={addItem} className="w-full py-3 bg-gray-50 text-blue-600 font-bold text-xs hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
+            <Plus size={14} /> إضافة صنف جديد للشحنة
+          </button>
+        </div>
+
+        <div className="flex justify-between items-center bg-blue-50 p-4 rounded-xl border border-blue-100">
+          <div className="flex gap-6">
+            <div>
+              <p className="text-[10px] font-bold text-blue-600">إجمالي التكلفة</p>
+              <p className="text-lg font-black text-blue-900">{formatUSD(totalUSD)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-blue-600">إجمالي قيمة البيع</p>
+              <p className="text-lg font-black text-blue-900">{formatCurrency(totalLYD)}</p>
+            </div>
+          </div>
+          <button type="submit" className="btn-primary px-8 py-3 rounded-xl font-bold shadow-lg">
+            حفظ الشحنة وتحديث المخزون
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 };
 
@@ -2730,6 +3194,7 @@ const MaintenanceView: React.FC<{
       total,
       paymentMethod,
       status: 'Completed',
+      invoiceType: 'Maintenance',
       maintenanceDevice: record.deviceInfo,
       notes: record.inspectionNotes,
       createdBy: currentUser.id
@@ -3869,106 +4334,195 @@ const LoginView: React.FC<{
 }> = ({ users, error, onSubmit }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(username, password);
   };
 
-  const firstUser = users[0];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0B2C4D] to-[#020617] flex items-center justify-center px-4">
-      <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-5 gap-8 bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur">
-        <div className="hidden md:flex md:col-span-3 bg-[radial-gradient(circle_at_top,_#1d4ed8,_#020617)] text-white p-10 flex-col justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/10 p-3 rounded-2xl">
-              <img src="/assets/logos/mainlogo copy.png" alt="Logo" className="h-14 w-auto object-contain brightness-0 invert" />
+    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0B2C4D] to-[#020617] flex items-center justify-center px-4 py-8">
+      <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-0 bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur-lg transition-all duration-300 hover:shadow-3xl">
+        {/* Left Side - Branding & Information */}
+        <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-[#0B2C4D] via-[#1d4ed8] to-[#0B2C4D] text-white p-12 relative overflow-hidden">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 left-0 w-full h-full opacity-10">
+            <div className="absolute top-20 right-20 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 left-20 w-80 h-80 bg-blue-400 rounded-full blur-3xl"></div>
+          </div>
+          
+          {/* Logo Section */}
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-12">
+              <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm hover:bg-white/30 transition-all duration-300 shadow-lg">
+                <img src="/assets/logos/mainlogo copy.png" alt="Logo" className="h-16 w-auto object-contain brightness-0 invert" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-black tracking-wide">الشركة الوطنية للمعدات البحرية</h1>
+                <p className="text-xs font-bold text-blue-200 tracking-[0.2em] mt-1">AL-WATANYA MARINE SYSTEMS</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-black tracking-wide">الشركة الوطنية للمعدات البحرية</h1>
-              <p className="text-xs font-bold text-blue-200 tracking-[0.2em] mt-1">AL-WATANYA MARINE SYSTEMS</p>
+          
+            <div className="space-y-4">
+              <h2 className="text-3xl md:text-4xl font-black leading-tight">تسجيل الدخول إلى المنظومة</h2>
+              <p className="text-sm text-blue-100 font-medium leading-relaxed">
+                نظام إدارة شاملة للمعدات البحرية، يتيح لك إدارة المبيعات، الصيانة، والمخزون بكفاءة عالية.
+              </p>
             </div>
           </div>
-          <div className="space-y-3 mt-10">
-            <h2 className="text-3xl font-black">تسجيل الدخول إلى المنظومة</h2>
-            <p className="text-sm text-blue-100 font-medium">
-              يرجى إدخال اسم المستخدم وكلمة المرور التي تم إنشاؤها من شاشة الإعدادات. يمكن للمدير إضافة وحذف المستخدمين وتحديد صلاحيات كل مستخدم على الأقسام المختلفة.
-            </p>
+          
+          {/* Features Grid */}
+          <div className="relative z-10 grid grid-cols-1 gap-6 mt-12">
+            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-blue-400/30 p-2 rounded-lg">
+                  <ShoppingCart size={16} className="text-white" />
+                </div>
+                <h3 className="font-bold text-white">المبيعات</h3>
+              </div>
+              <p className="text-xs text-blue-100/90">إصدار فواتير، تقارير يومية، وسندات سداد ديون.</p>
+            </div>
+            
+            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-blue-400/30 p-2 rounded-lg">
+                  <Wrench size={16} className="text-white" />
+                </div>
+                <h3 className="font-bold text-white">الصيانة والورشة</h3>
+              </div>
+              <p className="text-xs text-blue-100/90">متابعة الأعمال، حالات الصيانة، وفواتير الصيانة.</p>
+            </div>
+            
+            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm hover:bg-white/20 transition-all duration-300 border border-white/20">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-blue-400/30 p-2 rounded-lg">
+                  <Package size={16} className="text-white" />
+                </div>
+                <h3 className="font-bold text-white">المخزون والتقارير</h3>
+              </div>
+              <p className="text-xs text-blue-100/90">إدارة المخزن، كشوفات A4 جاهزة للطباعة، وحسابات العملاء.</p>
+            </div>
           </div>
-          {firstUser && (
-            <div className="mt-6 text-xs text-blue-100/80 space-y-1">
-              <p className="font-bold text-blue-200">بيانات دخول تجريبية:</p>
-              <p>اسم المستخدم: <span className="font-bold text-white">{firstUser.username}</span></p>
-              <p>كلمة المرور: <span className="font-bold text-white">{firstUser.password}</span></p>
-            </div>
-          )}
-          <div className="mt-10 grid grid-cols-3 gap-4 text-[10px] text-blue-100/80">
-            <div>
-              <p className="font-bold text-blue-200 mb-1">المبيعات</p>
-              <p>إصدار فواتير، تقارير يومية، وسندات سداد ديون.</p>
-            </div>
-            <div>
-              <p className="font-bold text-blue-200 mb-1">الصيانة والورشة</p>
-              <p>متابعة الأعمال، حالات الصيانة، وفواتير الصيانة.</p>
-            </div>
-            <div>
-              <p className="font-bold text-blue-200 mb-1">المخزون والتقارير</p>
-              <p>إدارة المخزن، كشوفات A4 جاهزة للطباعة، وحسابات العملاء.</p>
-            </div>
+          
+          {/* Footer */}
+          <div className="relative z-10 mt-12 pt-6 border-t border-white/10">
+            <p className="text-xs text-blue-100/80">© 2024 الشركة الوطنية للمعدات البحرية</p>
+            <p className="text-xs text-blue-400 font-bold">AL-WATANYA MARINE SYSTEMS</p>
           </div>
         </div>
 
-        <div className="md:col-span-2 bg-[var(--bg)]/90 p-8 md:p-10 flex flex-col justify-center">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-black text-white mb-1">تسجيل الدخول</h2>
-              <p className="text-xs text-white/80">أدخل بيانات الدخول للمتابعة إلى النظام</p>
-            </div>
+        {/* Right Side - Login Form */}
+        <div className="bg-[var(--bg)]/95 p-8 md:p-12 flex flex-col justify-center">
+          <div className="mb-8">
+            <h2 className="text-3xl font-black text-white mb-2">تسجيل الدخول</h2>
+            <p className="text-sm text-white/70">أدخل بيانات الدخول للمتابعة إلى النظام</p>
           </div>
+          
+          {/* Demo Accounts Toggle */}
+          <button 
+            onClick={() => setShowDemoAccounts(!showDemoAccounts)} 
+            className="w-full mb-6 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+          >
+            {showDemoAccounts ? (
+              <>
+                <ChevronDown className="rotate-180 transition-transform" size={16} />
+                إخفاء حسابات التطبيق
+              </>
+            ) : (
+              <>
+                <ChevronDown className="transition-transform" size={16} />
+                عرض حسابات التطبيق
+              </>
+            )}
+          </button>
+          
+          {/* Demo Accounts List */}
+          {showDemoAccounts && (
+            <div className="mb-6 bg-white/5 rounded-xl border border-white/10 p-4 space-y-3">
+              {users.map((user, index) => (
+                <div key={user.id} className="flex justify-between items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-all duration-200">
+                  <div>
+                    <p className="text-sm font-bold text-white">{user.name}</p>
+                    <p className="text-xs text-white/60">{user.role === 'Admin' ? 'مدير عام' : user.role === 'User' ? 'موظف' : user.role}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-mono text-blue-400">{user.username}</p>
+                    <p className="text-xs font-mono text-green-400">{user.password}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-xs font-bold mb-1 text-[var(--primary)]">اسم المستخدم</label>
-              <div className="relative">
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-[var(--primary)]">اسم المستخدم</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none transition-colors duration-200 group-focus-within:text-[var(--primary)]">
+                  <UserIcon size={18} className="text-[var(--text-secondary)]" />
+                </div>
                 <Input
                   type="text"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  placeholder="مثال: admin أو user1"
-                  className="pr-9"
+                  placeholder="مثال: admin أو sales"
+                  className="pr-10 h-12 bg-white/5 border-white/10 hover:border-[var(--primary)]/50 transition-all duration-300"
                 />
-                <UserIcon size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold mb-1 text-[var(--primary)]">كلمة المرور</label>
-              <div className="relative">
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-[var(--primary)]">كلمة المرور</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none transition-colors duration-200 group-focus-within:text-[var(--primary)]">
+                  <Key size={18} className="text-[var(--text-secondary)]" />
+                </div>
                 <Input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="أدخل كلمة المرور"
-                  className="pr-9"
+                  className="pr-10 h-12 bg-white/5 border-white/10 hover:border-[var(--primary)]/50 transition-all duration-300"
                 />
-                <Key size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
               </div>
             </div>
+            
             {error && (
-              <div className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-center gap-2">
-                <AlertCircle size={14} />
+              <div className="text-sm font-bold text-red-500 bg-red-50/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-2 animate-shake">
+                <AlertCircle size={16} />
                 <span>{error}</span>
               </div>
             )}
+            
             <button
               type="submit"
-              className="w-full mt-2 bg-[var(--primary)] hover:bg-[#0f2742] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg shadow-blue-900/30 active:scale-[0.99] transition-all"
+              className="w-full mt-4 bg-gradient-to-r from-[var(--primary)] to-[#1d4ed8] hover:from-[#1d4ed8] hover:to-[var(--primary)] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg shadow-blue-900/40 active:scale-[0.98] transition-all duration-300 transform hover:shadow-xl"
             >
               <LogIn size={18} />
               <span>دخول إلى المنظومة</span>
             </button>
           </form>
-          <div className="mt-6 text-[10px] text-[var(--text-secondary)] leading-relaxed">
-            <p>في حالة نسيان بيانات الدخول، يرجى الرجوع إلى مدير النظام لإعادة تعيين اسم المستخدم أو كلمة المرور من شاشة الإعدادات.</p>
+          
+          {/* Quick Access Buttons */}
+          <div className="mt-8 grid grid-cols-3 gap-2">
+            {users.map((user, index) => (
+              <button
+                key={user.id}
+                onClick={() => {
+                  setUsername(user.username);
+                  setPassword(user.password);
+                }}
+                className="py-2 px-3 bg-white/5 hover:bg-white/10 text-xs text-white/80 rounded-lg transition-all duration-200 hover:text-white"
+                title={`تسجيل الدخول كـ ${user.name}`}
+              >
+                {user.username.slice(0, 3).toUpperCase()}
+              </button>
+            ))}
+          </div>
+          
+          <div className="mt-8 text-center text-xs text-white/50">
+            <p>© 2024 AL-WATANYA MARINE SYSTEMS</p>
           </div>
         </div>
       </div>
@@ -3990,6 +4544,7 @@ const App: React.FC = () => {
   const [sales, setSales] = useState<Sale[]>(MOCK_SALES);
   const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
   const [maintenance, setMaintenance] = useState<MaintenanceRecord[]>(MOCK_MAINTENANCE);
+  const [supplyInvoices, setSupplyInvoices] = useState<SupplyInvoice[]>(MOCK_SUPPLY_INVOICES);
 
   const [isNewSaleModalOpen, setIsNewSaleModalOpen] = useState(false);
   const [isDebtPaymentModalOpen, setIsDebtPaymentModalOpen] = useState(false);
@@ -4074,6 +4629,29 @@ const App: React.FC = () => {
     setMaintenance(prev => prev.filter(m => m.id !== id));
   };
 
+  const handleBulkSupply = (invoice: SupplyInvoice) => {
+    // 1. Add the supply invoice to state
+    setSupplyInvoices(prev => [invoice, ...prev]);
+
+    // 2. Update product stock and prices
+    setProducts(prev => {
+      return prev.map(product => {
+        const item = invoice.items.find(i => i.productId === product.id);
+        if (item) {
+          return {
+            ...product,
+            stock: product.stock + item.quantity,
+            costUSD: item.costUSD,
+            price: item.priceLYD
+          };
+        }
+        return product;
+      });
+    });
+    
+    alert('تم حفظ شحنة التوريد وتحديث الكميات في المخزن بنجاح');
+  };
+
   // View Router
   const renderContent = () => {
     switch (activeView) {
@@ -4144,6 +4722,13 @@ const App: React.FC = () => {
           onUsersChange={setUsers} 
           onCurrentUserChange={setCurrentUser} 
         />;
+      case 'archive':
+        return <ArchiveView 
+          sales={sales} 
+          supplyInvoices={supplyInvoices} 
+          products={products} 
+          currentUser={currentUser} 
+        />;
       default: return <div className="p-10 text-center">View Not Found</div>;
     }
   };
@@ -4200,6 +4785,7 @@ const App: React.FC = () => {
                 <SidebarItem id="maintenance" icon={Wrench} label="الصيانة" />
                 <SidebarItem id="messages" icon={Mail} label="الرسائل" />
                 <SidebarItem id="reports" icon={FileBarChart} label="التقارير" />
+                <SidebarItem id="archive" icon={Archive} label="أرشيف الفواتير" />
                 <SidebarItem id="accounting" icon={Banknote} label="الحسابات" />
                 <SidebarItem id="settings" icon={Settings} label="الإعدادات" />
             </nav>

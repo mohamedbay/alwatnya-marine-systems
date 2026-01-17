@@ -39,9 +39,28 @@ export interface Sale {
   total: number;
   paymentMethod: 'Cash' | 'Check' | 'Transfer' | 'Credit'; // Credit adds to debt
   status: 'Completed' | 'Pending';
+  invoiceType: 'Sale' | 'Maintenance' | 'Supply'; // Added invoiceType
   maintenanceDevice?: string;
   notes?: string;
   createdBy: string; // User ID
+}
+
+export interface SupplyInvoice {
+  id: string;
+  date: string;
+  supplierId: string;
+  supplierName: string;
+  items: {
+    productId: string;
+    productName: string;
+    quantity: number;
+    costUSD: number;
+    priceLYD: number;
+  }[];
+  totalUSD: number;
+  totalLYD: number;
+  notes?: string;
+  createdBy: string;
 }
 
 export type MaintenanceStatus = 'Entered' | 'Inspected' | 'In Progress' | 'Finished' | 'Delivered';
@@ -92,7 +111,7 @@ export interface EmailMessage {
   hasAttachment: boolean;
 }
 
-export type Permission = 'dashboard' | 'sales' | 'inventory' | 'maintenance' | 'customers' | 'accounting' | 'settings' | 'reports' | 'messages';
+export type Permission = 'dashboard' | 'sales' | 'inventory' | 'maintenance' | 'customers' | 'accounting' | 'settings' | 'reports' | 'messages' | 'archive';
 
 export interface User {
   id: string;
