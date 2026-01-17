@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>الشركة الوطنية للمعدات البحرية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        /* Palette */
+        --primary: #0B2C4D;
+        --primary-hover: #08223d; /* 12% Darker */
+        --surface: #FFFFFF;
+        --bg: #F4F6F8;
+        --border: #E1E5EA;
+        --text: #1A1A1A;
+        --text-secondary: #5F6C7B;
+        
+        /* Badges */
+        --success: #2E8B57;
+        --warning: #F4A261;
+        --danger: #C0392B;
+        --info: #3498DB;
+      }
+
+      body {
+        font-family: 'Cairo', sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        /* Nautical Subtle Pattern */
+        background-image: 
+          radial-gradient(var(--border) 1px, transparent 1px),
+          radial-gradient(var(--border) 1px, transparent 1px);
+        background-size: 20px 20px;
+        background-position: 0 0, 10px 10px;
+      }
+
+      /* Global Component Overrides */
+      .btn-primary {
+        background-color: var(--primary);
+        color: #fff;
+        transition: background-color 0.2s ease;
+      }
+      .btn-primary:hover {
+        background-color: var(--primary-hover);
+      }
+
+      .btn-secondary {
+        background-color: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+        transition: all 0.2s ease;
+      }
+      .btn-secondary:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+        border-color: var(--text-secondary);
+      }
+
+      /* Sidebar Active State */
+      .nav-item-active {
+        background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+        color: var(--primary);
+        font-weight: 700;
+        border-right: 3px solid var(--primary);
+      }
+      
+      .nav-item-inactive {
+        color: var(--text-secondary);
+      }
+      .nav-item-inactive:hover {
+        background-color: rgba(0,0,0,0.03);
+        color: var(--primary);
+      }
+
+      /* Table Styles */
+      .custom-table thead tr {
+        background-color: color-mix(in srgb, var(--surface) 85%, var(--bg)) !important;
+        border-bottom: 1px solid var(--border);
+      }
+      .custom-table th {
+        color: var(--text-secondary);
+        font-weight: 700;
+        padding: 1rem;
+      }
+      .custom-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background-color 0.15s ease;
+      }
+      .custom-table tbody tr:hover {
+        background-color: color-mix(in srgb, var(--primary) 6%, transparent);
+      }
+      .custom-table td {
+        padding: 1rem;
+      }
+
+      /* Marine Theme Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg); 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary); 
+      }
+
+      /* Print Styles for A4 Reports */
+      @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        body {
+          background-color: white !important;
+          background-image: none !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        #root > *:not(.print-area) {
+          display: none !important;
+        }
+        .print-area {
+          display: block !important;
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 21cm !important;
+          height: auto !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+      .print-only {
+        display: none;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "recharts": "https://esm.sh/recharts@^3.6.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
