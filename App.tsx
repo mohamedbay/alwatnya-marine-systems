@@ -4420,8 +4420,7 @@ const LoginView: React.FC<{
           
           {/* Footer */}
           <div className="relative z-10 mt-12 pt-6 border-t border-white/10 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <p className="text-xs text-blue-100/80">© 2024 الشركة الوطنية للمعدات البحرية</p>
-            <p className="text-xs text-blue-400 font-bold">AL-WATANYA MARINE SYSTEMS</p>
+            <p className="text-xs text-blue-100/80">© 2026 الشركة الوطنية للمعدات البحرية</p>
           </div>
         </div>
 
@@ -4566,7 +4565,7 @@ const LoginView: React.FC<{
           
           {/* Footer */}
           <div className="mt-8 text-center text-xs text-white/50 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <p>© 2024 AL-WATANYA MARINE SYSTEMS</p>
+            <p>© 2026 الشركة الوطنية للمعدات البحرية</p>
           </div>
         </div>
       </div>
